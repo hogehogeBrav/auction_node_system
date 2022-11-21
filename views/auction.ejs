@@ -7,13 +7,13 @@
   <title>Document</title>
 </head>
 <body>
-  <p>こんにちは、<%= name %> </p>
+  <p>こんにちは、<%= name %>さん </p>
   <h1>オークション一覧</h1>
   <ul>
     <% for(let i = 0;i < auction.length; i++){ %> 
       <li>オークションID<%= auction[i].auction_ID %> <%= auction[i].maker_name  %> <%= auction[i].name %>  開始時間:<%= auction[i].start_time.toLocaleString() %> 終了時間:<%= auction[i].ending_time.toLocaleString() %> </li>
       <% if(new Date(auction[i].start_time) <= new Date(new Date().toLocaleString()) && new Date(new Date().toLocaleString()) <= new Date(auction[i].ending_time)) { %>
-        <a href="/auction/<%= auction[i].auction_ID %>">オークションへ</a>
+        <a href="/auction/<%= auction[i].auction_ID %>?id=<%= id %>&username=<%= name %>">オークションへ</a>
       <% } else {%> 
         <p>オークションは終了しました</p>
       <% } %> 

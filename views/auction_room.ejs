@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+  <p>こんにちは、<%= name %>さん</p>
+  <h1>オークションNo. <%= auction[0].auction_ID %></h1>
+  <h2><%= auction[0].maker_name  %> <%= auction[0].name %> <%= auction[0].grade %> </h2>
+  <p id="now_amount">現在価格: <%= auction[0].max_amount %> </p>
+  <p>開始時間:<%= auction[0].start_time.toLocaleString() %> 終了時間:<%= auction[0].ending_time.toLocaleString() %></p>
+  <p>残り時間:</p>
+
+  <form id="bidForm">
+    入札金額：<input type="number" id="amount_form" min="<%= auction[0].max_amount + 1%>" value="<%= auction[0].max_amount %>">
+    <input type="submit" class="button" value="Send">
+  </form>
+</body>
+<script>
+  var auctionid = '<%= auction[0].auction_ID %>';
+  var userid = '<%= id %>';
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/auction_room.js"></script>
+</html>

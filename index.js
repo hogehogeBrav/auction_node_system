@@ -6,9 +6,12 @@ const http_socket = require('http').Server(app);
 const io_socket = require('socket.io')(http_socket);
 const passport = require('passport');
 const mysql = require('mysql2');
+
 app.set('view engine', 'ejs');
+
 app.use(express.static(__dirname + "/view" , {index: false}));
 app.use(express.static(__dirname + "/public" , {index: false}));
+// app.use(express.static(__dirname + "/js" , {index: false}));
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
@@ -101,5 +104,67 @@ app.post('/login', passport.authenticate('local', {
       });
   }
 );
+
+app.get('/auction/:auction_ID', (req, res) => {
+  connection.query(
+    `SELECT * , MAX(auction_bid.amount) as max_amount FROM auction 
+    INNER JOIN stock
+    ON (auction.car_ID = stock.car_ID)
+    INNER JOIN model
+    ON (stock.car_model_ID = model.car_model_ID)
+    INNER JOIN maker
+    ON (model.maker_ID = maker.maker_ID)
+    INNER JOIN auction_bid
+    ON (auction.auction_ID = auction_bid.auction_ID)
+    AND (auction.auction_ID = ` + req.params.auction_ID + `);`, 
+    (error, results) => {
+      console.log(results);
+      console.log(req.params);
+      if (error) {
+        console.log('error connecting: ' + error.stack);
+        res.status(400).send({ message: 'Error!!' });
+        return;
+      }
+      res.render('auction_room.ejs', {
+        auction: results,
+        id: req.query.id,
+        name: req.query.username,
+      }); 
+    });
+});
+
+app.post('/auction', (req, res) => {
+  let values = [
+    req.body.auctionid,
+    req.body.id,
+    req.body.amount,
+  ];
+
+  console.log(values);
+
+  connection.query(
+    "INSERT INTO auction_bid (auction_ID, user_ID, amount) VALUES (? , ? , ?);" ,
+    values,
+    (error, results , fields) => {
+      if (error) {
+        console.log('error connecting: ' + error.stack);
+        res.status(400).send({ message: 'Error!!'});
+        return;
+      }
+      res.write(JSON.stringify({ message: 'Success!!' }));
+    }
+  );
+});
+
+io_socket.on('connection', function(socket){
+  console.log('connected');
+  socket.on('c2s' , function(msg){
+    io_socket.to(msg.auctionid).emit('s2c', msg);
+  });
+  socket.on('c2s-join', function(msg){
+    console.log('c2s-join:' + msg.auctionid);
+    socket.join(msg.auctionid);
+  });
+});
 
 http_socket.listen(9000);
