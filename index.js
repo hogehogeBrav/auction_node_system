@@ -25,7 +25,6 @@ const connection = mysql.createConnection({
 
 // ログイン認証
 app.use(passport.initialize());
-
 const LocalStrategy = require('passport-local').Strategy;
 passport.use(new LocalStrategy(
   {
@@ -55,6 +54,29 @@ passport.use(new LocalStrategy(
   }
 ));
 
+var session = require('express-session');
+app.use(session({
+    secret: 'auction',
+}));
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+    done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+    done(null, user);
+});
+
+// ログインセッション管理
+function isAuthenticated(req, res, next){
+  if (req.isAuthenticated()) {  // 認証済
+      return next();
+  }
+  else {  // 認証されていない
+      res.redirect('/');  // ログイン画面に遷移
+  }
+}
 
 app.get('/', (req, res) => {
   connection.query(
@@ -74,38 +96,48 @@ app.get('/', (req, res) => {
   res.render('index.ejs')
 });
 
+// ログイン画面
 app.get('/login', (req, res) => {
   res.render('login.ejs');
 });
 // ログイン認証
 app.post('/login', passport.authenticate('local', {
-  session: false,
+  session: true,
+  successRedirect: '/auction',
   failureRedirect: '/login'
-}),
-  function(req, res) {
-    connection.query(
-      `SELECT auction.auction_ID, model.name, maker.maker_name, auction.start_time, auction.ending_time 
-      FROM auction 
-      JOIN stock ON auction.car_ID = stock.car_ID 
-      JOIN model ON stock.car_model_ID = model.car_model_ID 
-      JOIN maker ON model.maker_ID = maker.maker_ID;` ,
-      (error, results) => {
-        console.log(results);
-        if (error) {
-          console.log('error connecting: ' + error.stack);
-          res.status(400).send({ message: 'Error!!' });
-          return;
-        }
-        res.render('auction.ejs', {
-          auction: results,
-          id: req.user.user_ID,
-          name: req.user.name
-        });
-      });
-  }
-);
+}));
 
-app.get('/auction/:auction_ID', (req, res) => {
+// ログアウト処理
+app.get('/logout', function(req, res, next){
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    res.redirect('/');
+  });
+});
+
+app.get('/auction', isAuthenticated, (req, res) => {
+  connection.query(
+    `SELECT auction.auction_ID, model.name, maker.maker_name, auction.start_time, auction.ending_time 
+    FROM auction 
+    JOIN stock ON auction.car_ID = stock.car_ID 
+    JOIN model ON stock.car_model_ID = model.car_model_ID 
+    JOIN maker ON model.maker_ID = maker.maker_ID;` ,
+    (error, results) => {
+      console.log(results);
+      if (error) {
+        console.log('error connecting: ' + error.stack);
+        res.status(400).send({ message: 'Error!!' });
+        return;
+      }
+      res.render('auction.ejs', {
+        auction: results,
+        id: req.user.user_ID,
+        name: req.user.name
+      });
+    });
+});
+
+app.get('/auction/:auction_ID', isAuthenticated, (req, res) => {
   connection.query(
     `SELECT * , MAX(auction_bid.amount) as max_amount FROM auction 
     INNER JOIN stock
@@ -125,9 +157,6 @@ app.get('/auction/:auction_ID', (req, res) => {
         res.status(400).send({ message: 'Error!!' });
         return;
       }
-      const now = new Date();
-      const finish = new Date(results[0].ending_time);
-      const diff = finish.getTime() - now.getTime();
       res.render('auction_room.ejs', {
         auction: results,
         id: req.query.id,
@@ -136,7 +165,7 @@ app.get('/auction/:auction_ID', (req, res) => {
     });
 });
 
-app.post('/auction', (req, res) => {
+app.post('/auction', isAuthenticated, (req, res) => {
   let values = [
     req.body.auctionid,
     req.body.id,
