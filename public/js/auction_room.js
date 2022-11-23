@@ -1,5 +1,39 @@
 const socketio = io();
-const form = document.getElementById('bidForm');
+const form = document.getElementById('bid_form');
+const amount_form = document.getElementById('amount_form');
+const bid_button = document.getElementById('bid_button'); // 入札ボタン
+
+const hour = document.getElementById("diff_hour");
+const min = document.getElementById("diff_min");
+const sec = document.getElementById("diff_sec");
+
+function countdown() {
+  const now = new Date();
+  const diff = ending_time - now.getTime();
+
+  // ミリ秒から単位を修正
+  const calcHour = Math.floor(diff / 1000 / 60 / 60);
+  const calcMin = Math.floor(diff / 1000 / 60) % 60;
+  const calcSec = Math.floor(diff / 1000) % 60;
+
+  // 取得した時間を表示（2桁表示）
+  hour.innerHTML = calcHour < 10 ? '0' + calcHour : calcHour;
+  min.innerHTML = calcMin < 10 ? '0' + calcMin : calcMin;
+  sec.innerHTML = calcSec < 10 ? '0' + calcSec : calcSec;
+
+  if(diff <= 0) {
+    clearInterval(timer);
+    hour.innerHTML = '00';
+    min.innerHTML = '00';
+    sec.innerHTML = '00';
+
+    amount_form.disabled = true;
+    bid_button.disabled = true;
+    bid_button.value = '終了しました';
+  }
+}
+countdown();
+var timer = setInterval(countdown,1000);
 
 form.addEventListener('submit' , function(event){
   event.preventDefault();

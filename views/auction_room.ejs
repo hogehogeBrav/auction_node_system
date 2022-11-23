@@ -12,17 +12,22 @@
   <h1>オークションNo. <%= auction[0].auction_ID %></h1>
   <h2><%= auction[0].maker_name  %> <%= auction[0].name %> <%= auction[0].grade %> </h2>
   <p id="now_amount">現在価格: <%= auction[0].max_amount %> </p>
-  <p>開始時間:<%= auction[0].start_time.toLocaleString() %> 終了時間:<%= auction[0].ending_time.toLocaleString() %></p>
-  <p>残り時間:</p>
+  <p id="start_time">開始時間:<%= auction[0].start_time.toLocaleString() %></p>
+  <p id="ending_time">終了時間:<%= auction[0].ending_time.toLocaleString() %></p>
 
-  <form id="bidForm">
+  <div class="time-container">
+    <p class="diff_time">残り<span id="diff_hour"></span>時間&nbsp;<span id="diff_min"></span>分&nbsp;<span id="diff_sec"></span>秒</p>
+  </div>
+
+  <form id="bid_form">
     入札金額：<input type="number" id="amount_form" min="<%= auction[0].max_amount + 1%>" value="<%= auction[0].max_amount %>">
-    <input type="submit" class="button" value="Send">
+    <input type="submit" id="bid_button" value="入札">
   </form>
 </body>
 <script>
   var auctionid = '<%= auction[0].auction_ID %>';
   var userid = '<%= id %>';
+  var ending_time = new Date('<%= auction[0].ending_time %>');
 </script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/auction_room.js"></script>

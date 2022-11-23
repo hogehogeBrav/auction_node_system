@@ -125,6 +125,9 @@ app.get('/auction/:auction_ID', (req, res) => {
         res.status(400).send({ message: 'Error!!' });
         return;
       }
+      const now = new Date();
+      const finish = new Date(results[0].ending_time);
+      const diff = finish.getTime() - now.getTime();
       res.render('auction_room.ejs', {
         auction: results,
         id: req.query.id,
