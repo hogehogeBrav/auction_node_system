@@ -1,5 +1,5 @@
 "use strict"
-var db = require("./settings/db");
+const db = require("./settings/db");
 const express = require('express');
 const app = express();
 const http_socket = require('http').Server(app);
@@ -115,6 +115,7 @@ app.get('/logout', function(req, res, next){
   });
 });
 
+// オークション画面
 app.get('/auction', isAuthenticated, (req, res) => {
   connection.query(
     `SELECT auction.auction_ID, model.name, maker.maker_name, auction.start_time, auction.ending_time 
@@ -139,7 +140,7 @@ app.get('/auction', isAuthenticated, (req, res) => {
 
 app.get('/auction/:auction_ID', isAuthenticated, (req, res) => {
   connection.query(
-    `SELECT * , MAX(auction_bid.amount) as max_amount FROM auction 
+    `SELECT *, auction.auction_ID, MAX(auction_bid.amount) as max_amount FROM auction 
     INNER JOIN stock
     ON (auction.car_ID = stock.car_ID)
     INNER JOIN model
@@ -157,10 +158,16 @@ app.get('/auction/:auction_ID', isAuthenticated, (req, res) => {
         res.status(400).send({ message: 'Error!!' });
         return;
       }
+      // 入札金額
+      var now_amount = results[0].max_amount;
+      if(results[0].max_amount == null){
+        now_amount = results[0].minimum_amount;
+      }
       res.render('auction_room.ejs', {
         auction: results,
-        id: req.query.id,
-        name: req.query.username,
+        now_amount: now_amount,
+        id: req.user.user_ID,
+        name: req.user.name,
       }); 
     });
 });

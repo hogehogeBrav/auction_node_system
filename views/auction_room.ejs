@@ -11,7 +11,7 @@
   <p>こんにちは、<%= name %>さん</p>
   <h1>オークションNo. <%= auction[0].auction_ID %></h1>
   <h2><%= auction[0].maker_name  %> <%= auction[0].name %> <%= auction[0].grade %> </h2>
-  <p id="now_amount">現在価格: <%= auction[0].max_amount %> </p>
+  <p id="now_amount">現在価格: <%= now_amount %> </p>
   <p id="start_time">開始時間:<%= auction[0].start_time.toLocaleString() %></p>
   <p id="ending_time">終了時間:<%= auction[0].ending_time.toLocaleString() %></p>
 
@@ -20,7 +20,7 @@
   </div>
 
   <form id="bid_form">
-    入札金額：<input type="number" id="amount_form" min="<%= auction[0].max_amount + 1%>" value="<%= auction[0].max_amount %>">
+    入札金額：<input type="number" id="amount_form" min="<%= now_amount + 1%>" value="<%= now_amount %>">
     <input type="submit" id="bid_button" value="入札">
   </form>
 </body>

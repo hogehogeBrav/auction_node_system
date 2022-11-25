@@ -33,7 +33,7 @@ function countdown() {
   }
 }
 countdown();
-var timer = setInterval(countdown,1000);
+var timer = setInterval(countdown,10);
 
 form.addEventListener('submit' , function(event){
   event.preventDefault();
@@ -48,7 +48,8 @@ form.addEventListener('submit' , function(event){
     url: "/auction",
     data: sendData,
   }).done(function(results){
-    console.log(results);
+    // console.log(results);
+    alert("入札しました！ 入札金額は" + document.getElementById("amount_form").value + "円です。");
   }).fail(function(xhr, textStatus, errorThrown){
     console.log("ajax通信に失敗しました。");
   }).always(function(xhr){
