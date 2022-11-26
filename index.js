@@ -140,7 +140,8 @@ app.get('/auction', isAuthenticated, (req, res) => {
 
 app.get('/auction/:auction_ID', isAuthenticated, (req, res) => {
   connection.query(
-    `SELECT *, auction.auction_ID, MAX(auction_bid.amount) as max_amount FROM auction 
+    `SELECT *, auction.auction_ID, MAX(auction_bid.amount) as max_amount 
+    FROM auction 
     INNER JOIN stock
     ON (auction.car_ID = stock.car_ID)
     INNER JOIN model
@@ -150,26 +151,43 @@ app.get('/auction/:auction_ID', isAuthenticated, (req, res) => {
     INNER JOIN auction_bid
     ON (auction.auction_ID = auction_bid.auction_ID)
     AND (auction.auction_ID = ` + req.params.auction_ID + `);`, 
-    (error, results) => {
+    (error1, results) => {
       console.log(results);
       console.log(req.params);
-      if (error) {
-        console.log('error connecting: ' + error.stack);
+      if (error1) {
+        console.log('error connecting: ' + error1.stack);
         res.status(400).send({ message: 'Error!!' });
         return;
       }
-      // 入札金額
-      var now_amount = results[0].max_amount;
-      if(results[0].max_amount == null){
-        now_amount = results[0].minimum_amount;
-      }
-      res.render('auction_room.ejs', {
-        auction: results,
-        now_amount: now_amount,
-        id: req.user.user_ID,
-        name: req.user.name,
-      }); 
-    });
+      connection.query(
+        `SELECT amount_time, auction_bid.user_ID, name, amount 
+        FROM auction_bid 
+        INNER JOIN user 
+        ON (auction_bid.user_ID = user.user_ID) 
+        WHERE auction_ID = ` + req.params.auction_ID + ` 
+        ORDER BY amount_time ASC;`,
+      (error2, results2) => {
+        console.log(results2);
+        if (error2) {
+          console.log('error connecting: ' + error2.stack);
+          res.status(400).send({ message: 'Error!!' });
+          return;
+        }
+        // 入札金額
+        var now_amount = results[0].max_amount;
+        if(results[0].max_amount == null){
+          now_amount = results[0].minimum_amount;
+        }
+        res.render('auction_room.ejs', {
+          auction: results,
+          auction_bid_history: results2,
+          now_amount: now_amount,
+          id: req.user.user_ID,
+          name: req.user.name,
+        });
+      });
+    }
+  );
 });
 
 app.post('/auction', isAuthenticated, (req, res) => {

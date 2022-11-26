@@ -23,10 +23,21 @@
     入札金額：<input type="number" id="amount_form" min="<%= now_amount + 1%>" value="<%= now_amount %>">
     <input type="submit" id="bid_button" value="入札">
   </form>
+
+  <button id="bid_history">入札履歴</button>
+  <div id="bid_history_modal">    
+    <h3>オークション入札履歴</h3>
+    <ul id="bid_history_modal_lists">
+      <% for(let i = 0; i < auction_bid_history.length; i++) {%> 
+        <li>入札時間: <%= auction_bid_history[i].amount_time.toLocaleString() %> 入札者: <%= auction_bid_history[i].name %> 入札金額: <%= auction_bid_history[i].amount %></li>
+      <% } %>
+    </ul>
+  </div>
 </body>
 <script>
   var auctionid = '<%= auction[0].auction_ID %>';
   var userid = '<%= id %>';
+  var username = '<%= name %>';
   var ending_time = new Date('<%= auction[0].ending_time %>');
 </script>
 <script src="/socket.io/socket.io.js"></script>
